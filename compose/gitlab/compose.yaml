@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  gitlab-redis:
+    container_name: gitlab-redis
+    restart: always
+    image: redis:6.2
+    command:
+      - --loglevel warning
+    volumes:
+      - /home/data/gitlab/redis:/data:Z
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gitlab-db:
+    container_name: gitlab-db
+    restart: always
+    image: sameersbn/postgresql:14-20230628
+    volumes:
+      - /home/data/gitlab/postgresql:/var/lib/postgresql:Z
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gitlab:
+    container_name: gitlab
+    restart: always
+    image: sameersbn/gitlab:17.3.1
+    depends_on:
+      - gitlab-db
+      - gitlab-redis
+    ports:
+      - ${GITLAB_HTTP_PORT}:80
+      - ${GITLAB_SSH_PORT}:22
+    volumes:
+      - /home/data/gitlab/data:/home/git/data:Z
+    healthcheck:
+      test: ["CMD", "/usr/local/sbin/healthcheck"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 5m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    secrets:
+      - smtp_password
+      - imap_password
+
+secrets:
+  db_password:
+    external: true
+  smtp_password:
+    external: true
+  imap_password:
+    external: true
