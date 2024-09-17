@@ -1,4 +1,5 @@
 services:
+  # PostgreSQL database service for GitLab
   gitlab-db:
     container_name: gitlab-db
     restart: always
@@ -9,6 +10,21 @@ services:
       - /home/data/gitlab/postgresql:/var/lib/postgresql:Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  gitlab-redis:
+    container_name: gitlab-redis
+    restart: always
+    image: redis:6.2
+    command:
+      - --loglevel warning
+    volumes:
+      - /home/data/gitlab/redis:/data:Z
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
