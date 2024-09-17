@@ -132,3 +132,4 @@ Temporary Items
 
 # Environment's params
 .env
+compose/*/*.env
