@@ -1,7 +1,7 @@
 services:
-  # PostgreSQL database service for GitLab
   gitlab-db:
     container_name: gitlab-db
+    platform: linux/amd64
     restart: always
     image: sameersbn/postgresql:14-20230628
     env_file:
@@ -9,7 +9,7 @@ services:
     volumes:
       - /home/data/gitlab/postgresql:/var/lib/postgresql:Z
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -29,3 +29,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  gitlab:
+    container_name: gitlab
+    restart: always
+    image: sameersbn/gitlab:17.3.3
+    depends_on:
+      - gitlab-db
+      - gitlab-redis
+    ports:
+      - "10080:80"
+      - "10022:22"
+    volumes:
+      - /home/data/gitlab/data:/home/git/data:Z
+    healthcheck:
+      test: ["CMD", "/usr/local/sbin/healthcheck"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 5m
+    env_file:
+      - ./gitlab.env
