@@ -7,7 +7,7 @@ services:
     env_file:
       - ./gitlab.env
     volumes:
-      - /home/data/gitlab/postgresql:/var/lib/postgresql:Z
+      - ./backup/gitlab/postgresql:/var/lib/postgresql:Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
       interval: 30s
@@ -22,7 +22,7 @@ services:
     command:
       - --loglevel warning
     volumes:
-      - /home/data/gitlab/redis:/data:Z
+      - ./backup/gitlab/redis:/data:Z
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -41,7 +41,7 @@ services:
       - "10080:80"
       - "10022:22"
     volumes:
-      - /home/data/gitlab/data:/home/git/data:Z
+      - ./backup/gitlab/data:/home/git/data:Z
     healthcheck:
       test: ["CMD", "/usr/local/sbin/healthcheck"]
       interval: 5m
