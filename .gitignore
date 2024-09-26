@@ -1,63 +1,80 @@
-### IntelliJ and JetBrains IDEs ###
-# User-specific configurations
+### IntelliJ IDEA ###
+# Covers JetBrains IDEs: IntelliJ, PhpStorm, RubyMine, PyCharm, Android Studio, etc.
+
+# User-specific files
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/**/tasks.xml
-.idea/**/usage.statistics.xml
 .idea/**/workspace.xml
+.idea/**/usage.statistics.xml
 .idea/**/aws.xml
-.idea/php.xml
-.idea/vcs.xml
-.idea/inspectionProfiles/Project_Default.xml
 
-# Generated files
+# Generated & cache files
 .idea/**/contentModel.xml
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/dataSources.xml
+.idea/**/dataSources/
+.idea/**/dbnavigator.xml
+.idea/**/dynamic.xml
+.idea/**/sqlDataSources.xml
+.idea/**/uiDesigner.xml
 .idea/**/gradle.xml
 .idea/**/libraries
-.idea/**/dataSources/
-.idea/**/uiDesigner.xml
-
-# Mongo Explorer plugin:
-.idea/**/mongoSettings.xml
-
-# Plugin configurations (SonarLint, Markdown Navigator, etc.)
-.idea/**/sonarlint/
-.idea/**/markdown-navigator/
-.idea/**/sonarqube-community-plugin/
-.idea/**/codestream.xml
-.idea/**/azureSettings.xml
-
-# Project-specific configurations
-.idea_modules/
-*.iml
-*.ipr
-modules.xml
-
-# CMake Build
-cmake-build-*/
-
-# Cache files and system-generated files
 .idea/caches/build_file_checksums.ser
 .idea/$CACHE_FILE$
 
-# Ignore all XML files inside .idea folder
-.idea/*.xml
+# Plugin-specific files
+.idea/**/mongoSettings.xml
+.idea/**/markdown-navigator*.xml
+.idea/**/sonarlint/
+.idea/**/sonarIssues.xml
+.idea/replstate.xml
+.idea/httpRequests
+.idea/codestream.xml
+.idea/**/azureSettings.xml
 
-# Ignore IntelliJ IDEA folder and everything inside
-.idea/
+# Other IDE-related files
+*.iws
+.idea_modules/
+*.iml
+*.ipr
+.idea/misc.xml
+modules.xml
 
-### MacOS System Files ###
-.DS_Store
-.LSOverride
+### Build & Output ###
+# Gradle
+build/
+.gradle/
+
+# CMake
+cmake-build-*/
+
+# Crashlytics plugin (Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics-build.properties
+crashlytics.properties
+fabric.properties
+
+### macOS System Files ###
+# General macOS system files
 .AppleDouble
-Icon
+.DS_Store
+.idea
+.LSOverride
+Icon?
 ._*
+
+# Time Machine and other macOS system files
 .com.apple.timemachine.donotpresent
 .DocumentRevisions-V100
+.fseventsd
 .Spotlight-V100
 .TemporaryItems
 .Trashes
 .VolumeIcon.icns
+
+# Remote AFP share files
 .apdisk
 .AppleDB
 .AppleDesktop
@@ -67,13 +84,14 @@ Temporary Items
 ### SSL Directories ###
 .well-known
 
-### Environment Configuration ###
+### Environment files ###
 .env
-compose/*/*.env
 
-### Backup Folder ###
-# Ignore everything in the backup folder
-backup/*
-
-# But keep README.md files
-!backup/**/README.md
+### Additional ignore for sensitive files ###
+logs/
+*.log
+*.key
+*.crt
+tmp/
+*.tmp
+*.bak
