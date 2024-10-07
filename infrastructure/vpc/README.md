@@ -1,51 +1,103 @@
 
-# 🏗️ AWS VPC Infrastructure Setup using Terraform
+# 🌐 VPC Configuration with Terraform
 
-This directory contains the Terraform configuration files for setting up an Amazon Web Services (AWS) Virtual Private Cloud (VPC) infrastructure. This setup is part of the internal network configuration for Focela, aimed at managing multiple services effectively.
+This directory contains the Terraform configuration for setting up a Virtual Private Cloud (VPC) on AWS. The VPC will include subnets, internet gateway, NAT gateway, and route tables necessary for building a secure and scalable network infrastructure.
 
-- 📜 **main.tf**: Contains the core resource definitions for the AWS VPC, subnets, route tables, and other related components.
-- 📦 **variables.tf**: Defines input variables to parameterize the configuration, allowing more flexibility and easier customization.
-- 📤 **outputs.tf**: Manages output values, making it easier to access important resource information after the deployment.
-- 🔒 **.terraform.lock.hcl**: Ensures consistent provider versions across different environments and developers, maintaining stability.
-- 💾 **terraform.tfstate** and **terraform.tfstate.backup**: Files used to store the current state of the infrastructure, which allows Terraform to manage and track changes effectively.
+## 📋 Resources Included
+- **VPC** (`focela_vpc`):
+  - A Virtual Private Cloud to host all services, allowing better segmentation and security.
+- **Internet Gateway** (`igw`):
+  - Provides internet access for the resources within public subnets.
+- **Public Subnets** (`public_subnet_1`, `public_subnet_2`):
+  - Two public subnets for hosting public-facing resources, each in different availability zones.
+- **Private Subnets** (`private_subnet_1`, `private_subnet_2`):
+  - Two private subnets for hosting internal resources, also in different availability zones.
+- **Route Tables**:
+  - **Public Route Table**: Routes all traffic destined for the internet to the internet gateway.
+  - **Private Route Table**: Routes traffic from private subnets to the internet via a NAT gateway.
+- **NAT Gateway** (`nat_gw`):
+  - Allows resources in private subnets to access the internet without being publicly accessible.
 
-## 📋 Prerequisites
+## ✅ Prerequisites
+- Terraform is installed. To install Terraform, follow the [official documentation](https://learn.hashicorp.com/tutorials/terraform/install-cli).
+- AWS credentials are configured properly in your local environment.
 
-- Terraform version >= 1.0.0
-- AWS CLI configured with credentials for deployment
+## 🚀 Steps to Deploy VPC
 
-## 🚀 Getting Started
+### 1️⃣ Step 1: Initialize Terraform
+Navigate to the `vpc` directory and initialize Terraform to install the necessary providers and set up the local environment.
 
-1. **Initialize Terraform**:  
-   Run the following command to initialize Terraform and download provider plugins:
-   ```sh
-   terraform init
-   ```
+```sh
+cd cloud-devops/infrastructure/vpc/
+terraform init
+```
 
-2. **Plan the Infrastructure**:  
-   Run a plan to see the changes Terraform will apply:
-   ```sh
-   terraform plan
-   ```
+### 2️⃣ Step 2: Plan the Deployment
+Run the following command to preview the changes that Terraform will apply. This helps in verifying the configuration before actual deployment.
 
-3. **Apply the Configuration**:  
-   Deploy the infrastructure by running:
-   ```sh
-   terraform apply
-   ```
+```sh
+terraform plan
+```
 
-4. **Verify the Output**:  
-   After successful deployment, check the output values, such as VPC ID and subnet IDs, which will be displayed in the terminal.
+### 3️⃣ Step 3: Apply the Configuration
+Apply the Terraform configuration to create the VPC and all associated resources. Ensure that you have reviewed the plan before applying.
 
-## 🛠️ Variables
+```sh
+terraform apply
+```
 
-To customize the configuration, you can modify the variables in `variables.tf` or pass values during runtime using a `.tfvars` file or command-line options.
+### 4️⃣ Step 4: Verify the Resources
+After the successful deployment, verify that the VPC and its components have been created by using the AWS console or AWS CLI.
 
-## 🔍 Notes
+## 📊 Variables
+The following variables are used in this configuration. You can find them in the `variables.tf` file:
 
-- The `.terraform.lock.hcl` file must be included to ensure consistent provider versions and stability across different environments.
-- It is recommended not to version control `terraform.tfstate` and `terraform.tfstate.backup` files due to the sensitive information they contain. Ensure these files are ignored in your `.gitignore`.
+- **`region`**: The AWS region where the VPC and subnets will be created. Default is `"ap-northeast-1"` (Tokyo).
+- **`vpc_cidr`**: The CIDR block for the VPC. Default is `"10.0.0.0/16"`.
+- **`public_subnet_cidr_1`**: The CIDR block for the first public subnet. Default is `"10.0.1.0/24"`.
+- **`public_subnet_cidr_2`**: The CIDR block for the second public subnet. Default is `"10.0.2.0/24"`.
+- **`private_subnet_cidr_1`**: The CIDR block for the first private subnet. Default is `"10.0.3.0/24"`.
+- **`private_subnet_cidr_2`**: The CIDR block for the second private subnet. Default is `"10.0.4.0/24"`.
 
-## 📄 License
+## 📤 Outputs
+The outputs of this module include the following:
 
-This project is licensed under Focela Technologies. For more information, please see the [LICENSE](../../LICENSE) file.
+- **`vpc_id`**: ID of the created VPC.
+- **`public_subnet_ids`**: IDs of the created public subnets.
+- **`private_subnet_ids`**: IDs of the created private subnets.
+- **`nat_gateway_id`**: ID of the created NAT Gateway.
+
+## 📌 Example Usage
+You can use the outputs from this VPC module to deploy other services like EC2 instances, RDS databases, or EKS clusters. For example:
+
+```hcl
+module "eks" {
+  source  = "../eks"
+  vpc_id  = module.vpc.vpc_id
+  subnets = module.vpc.public_subnet_ids
+
+  ...
+}
+```
+
+## ⚠️ Notes
+- **Public vs. Private Subnets**: Public subnets are accessible from the internet, whereas private subnets are not. Be careful about the services you place in each.
+- **NAT Gateway Costs**: NAT Gateways incur additional costs. Consider using them only if your private subnets need access to the internet.
+
+## 🛠️ Troubleshooting
+- **Permission Denied**: Ensure that your AWS credentials are properly configured and have the necessary permissions to create VPC resources.
+- **CIDR Overlapping**: Ensure that the **CIDR blocks** for your subnets do not overlap, as this can cause deployment issues.
+
+## 🗑️ Cleanup
+To delete the VPC and all associated resources, use the following command:
+
+```sh
+terraform destroy
+```
+
+Ensure that no other resources depend on the VPC before deleting.
+
+## 📜 License
+This project is licensed for internal use only by employees of **Focela Technologies**. Redistribution, sublicensing, or any form of sharing of this software, either partially or fully, is strictly prohibited without prior written permission from **Focela Technologies**.
+
+See the `LICENSE` file for more details.
