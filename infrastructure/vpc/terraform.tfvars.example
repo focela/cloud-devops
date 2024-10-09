@@ -1,0 +1,19 @@
+# Example terraform.tfvars file for VPC configuration
+
+# AWS region where resources will be deployed
+aws_region = "ap-northeast-1"
+
+# CIDR block for the VPC
+vpc_cidr = "10.0.0.0/16"
+
+# CIDR block for Public Subnet A (replace with actual subnet CIDR)
+public_subnet_a_cidr = "10.0.1.0/24"
+
+# CIDR block for Public Subnet C (replace with actual subnet CIDR)
+public_subnet_c_cidr = "10.0.3.0/24"
+
+# CIDR block for Private Subnet A (replace with actual subnet CIDR)
+private_subnet_a_cidr = "10.0.2.0/24"
+
+# CIDR block for Private Subnet C (replace with actual subnet CIDR)
+private_subnet_c_cidr = "10.0.4.0/24"
