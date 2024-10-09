@@ -1,24 +1,36 @@
 
-# 🔒 Security Groups Configuration
+# 🔐 Security Groups Configuration
 
-This directory contains the Terraform configuration for setting up Security Groups to secure access for GitLab, PostgreSQL, and Redis services.
+This directory contains the Terraform configuration for setting up security groups for various services including GitLab, Redis, PostgreSQL (RDS), and EKS.
 
-## 📋 Resources Created
+## 📋 Security Groups Created
 
-### The Terraform configuration in this directory creates the following resources:
+The following security groups are created by this Terraform configuration:
 
-#### **🔐 Security Group for GitLab**:
-- Allows SSH access on port `22` for administrative control.
-- Allows HTTP access on port `80` and HTTPS on port `443` for GitLab web traffic.
-- Outbound traffic is allowed for all protocols.
+### **🛡️ GitLab Security Group**:
+- Allows inbound traffic on:
+    - **🌐 Port 80**: HTTP traffic
+    - **🔒 Port 443**: HTTPS traffic
+    - **🔑 Port 22**: SSH traffic for Git repository access
 
-#### **🔐 Security Group for PostgreSQL**:
-- Allows access to PostgreSQL on port `5432` from GitLab and internal networks.
-- Outbound traffic is allowed for all protocols.
+### **💾 Redis Security Group**:
+- Allows inbound traffic on:
+    - **🔌 Port 6379**: Redis communication
 
-#### **🔐 Security Group for Redis**:
-- Allows access to Redis on port `6379` from GitLab and internal networks.
-- Outbound traffic is allowed for all protocols.
+### **🗄️ PostgreSQL (RDS) Security Group**:
+- Allows inbound traffic on:
+    - **📡 Port 5432**: PostgreSQL communication
+
+### **⚙️ EKS Node Security Group**:
+- Allows inbound traffic on:
+    - **🔑 Port 22**: SSH access for managing EKS nodes
+    - **🔒 Port 443**: HTTPS communication for Kubernetes API
+    - **🔄 Port 10250**: Kubernetes node communication
+
+### **🛠️ EKS Control Plane Security Group**:
+- Allows inbound traffic on:
+    - **🔒 Port 443**: HTTPS communication for Kubernetes API
+    - **🔄 Port 10250**: Kubernetes node communication
 
 ## 🛠️ Usage
 
@@ -29,17 +41,17 @@ This directory contains the Terraform configuration for setting up Security Grou
 
 ### 🚀 Steps to deploy:
 
-1️⃣. Initialize the Terraform workspace:
+1️⃣ **Initialize the Terraform workspace**:
    ```bash
    terraform init
    ```
 
-2️⃣. Review the execution plan:
+2️⃣ **Review the execution plan**:
    ```bash
    terraform plan
    ```
 
-3️⃣. Apply the configuration to create the security groups:
+3️⃣ **Apply the configuration to create the RDS instance**:
    ```bash
    terraform apply
    ```
@@ -48,11 +60,13 @@ This directory contains the Terraform configuration for setting up Security Grou
 
 Once applied, Terraform will output the following information:
 
-- `gitlab_sg_id`: The ID of the Security Group for GitLab.
-- `postgres_sg_id`: The ID of the Security Group for PostgreSQL.
-- `redis_sg_id`: The ID of the Security Group for Redis.
+- `🛡️ gitlab_security_group_id`: The ID of the security group for GitLab
+- `💾 redis_security_group_id`: The ID of the security group for Redis
+- `🗄️ postgres_security_group_id`: The ID of the security group for PostgreSQL (RDS)
+- `⚙️ eks_node_security_group_id`: The ID of the security group for EKS nodes
+- `🛠️ eks_control_security_group_id`: The ID of the security group for EKS control plane
 
 ## 📌 Notes
 
-- Ensure that only trusted IPs are allowed in the security groups, especially for administrative access via SSH and database connections.
-- These security groups are designed to allow internal communication between GitLab, PostgreSQL, and Redis within the VPC, while restricting access from external networks.
+- Ensure the correct VPC ID and CIDR blocks are provided in the `terraform.tfvars` file.
+- You can customize the allowed inbound traffic by modifying the `allowed_cidr_blocks` in `terraform.tfvars` or directly in the security group definitions.
