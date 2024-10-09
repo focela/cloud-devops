@@ -119,8 +119,9 @@ secrets.yaml
 ### Terraform Files ###
 *.tfstate
 *.tfstate.backup
-.terraform/
+*.tfvars
 .terraform.tfstate.lock.info
+.terraform/
 
 ### Build Tools ###
 # Gradle
