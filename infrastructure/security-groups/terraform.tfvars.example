@@ -1,0 +1,20 @@
+# The VPC ID where the security groups will be deployed
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx"
+
+# CIDR blocks allowed to connect to the services (e.g., trusted IPs or ranges)
+allowed_cidr_blocks = ["0.0.0.0/0"]
+
+# Security Group ID for Redis
+redis_sg_id = "sg-xxxxxxxxxxxxxxxxx"
+
+# Security Group ID for PostgreSQL (RDS)
+postgres_sg_id = "sg-yyyyyyyyyyyyyyyyy"
+
+# Security Group ID for GitLab
+gitlab_sg_id = "sg-zzzzzzzzzzzzzzzzz"
+
+# Security Group ID for EKS Nodes
+eks_node_sg_id = "sg-aaaaaaaaaaaaaaaaa"
+
+# Security Group ID for EKS Control Plane
+eks_control_sg_id = "sg-bbbbbbbbbbbbbbbbb"
