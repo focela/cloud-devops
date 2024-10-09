@@ -1,0 +1,61 @@
+# Example terraform.tfvars file for RDS configuration
+
+# List of subnet IDs for the RDS DB subnet group
+# Replace with your own subnet IDs for the specific environment
+subnet_ids = ["subnet-xxxxxx", "subnet-yyyyyy"]
+
+# The database identifier
+# Replace with the desired identifier for your RDS instance
+db_identifier = "my-rds-db-instance"
+
+# The password for the RDS instance
+# Replace with a secure password for your database
+db_password = "your_secure_password_here"
+
+# The database name for RDS
+# Replace with the name of the database you want to create
+db_name = "my_database_name"
+
+# The database username
+# Replace with the username for accessing the database
+db_username = "your_db_username_here"
+
+# The database instance class
+# Replace with the desired instance class (e.g., db.t3.medium)
+db_instance_class = "db.t3.medium"
+
+# The allocated storage for the database in GB
+# Set the storage size (e.g., 20 GB)
+allocated_storage = 20
+
+# The engine version for the RDS instance (e.g., PostgreSQL 13.3)
+# Replace with the version of the database engine you prefer
+engine_version = "13.3"
+
+# The VPC security group IDs
+# Replace with the security group IDs that allow access to the database
+vpc_security_group_ids = ["sg-xxxxxx", "sg-yyyyyy"]
+
+# Backup retention period in days
+# Set the number of days to retain backups (e.g., 7)
+backup_retention_period = 7
+
+# Multi-AZ deployment (true or false)
+# Set to true if you want to enable multi-AZ deployment for high availability
+multi_az = false
+
+# Publicly accessible (true or false)
+# Set to false if you want to keep the database private within the VPC
+publicly_accessible = false
+
+# AWS region where resources will be deployed
+# Replace with the region of your choice (e.g., "us-east-1", "ap-northeast-1")
+aws_region = "ap-northeast-1"
+
+# VPC ID where RDS will be deployed
+# Replace with your VPC ID
+vpc_id = "vpc-xxxxxx"
+
+# List of allowed CIDR blocks for RDS access
+# Replace with your allowed CIDR blocks
+allowed_cidr_blocks = ["10.0.0.0/16"]
