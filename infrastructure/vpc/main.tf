@@ -1,62 +1,65 @@
+# Provider configuration for AWS
 provider "aws" {
-  region = "ap-northeast-1"
+  region = var.aws_region
 }
 
-# Define the main VPC for Focela
+# VPC creation
 resource "aws_vpc" "focela_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block       = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
   tags = {
     Name = "focela-vpc"
   }
 }
 
-# Define Public Subnet A in ap-northeast-1a
+# Public Subnet A
 resource "aws_subnet" "focela_public_subnet_a" {
-  vpc_id            = aws_vpc.focela_vpc.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "ap-northeast-1a"
+  vpc_id     = aws_vpc.focela_vpc.id
+  cidr_block = var.public_subnet_a_cidr
+  availability_zone = "${var.aws_region}a"
 
   tags = {
     Name = "focela-public-subnet-a"
   }
 }
 
-# Define Public Subnet C in ap-northeast-1c
+# Public Subnet C
 resource "aws_subnet" "focela_public_subnet_c" {
-  vpc_id            = aws_vpc.focela_vpc.id
-  cidr_block        = "10.0.3.0/24"
-  availability_zone = "ap-northeast-1c"
+  vpc_id     = aws_vpc.focela_vpc.id
+  cidr_block = var.public_subnet_c_cidr
+  availability_zone = "${var.aws_region}c"
 
   tags = {
     Name = "focela-public-subnet-c"
   }
 }
 
-# Define Private Subnet A in ap-northeast-1a
+# Private Subnet A
 resource "aws_subnet" "focela_private_subnet_a" {
-  vpc_id            = aws_vpc.focela_vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "ap-northeast-1a"
+  vpc_id     = aws_vpc.focela_vpc.id
+  cidr_block = var.private_subnet_a_cidr
+  availability_zone = "${var.aws_region}a"
 
   tags = {
     Name = "focela-private-subnet-a"
   }
 }
 
-# Define Private Subnet C in ap-northeast-1c
+# Private Subnet C
 resource "aws_subnet" "focela_private_subnet_c" {
-  vpc_id            = aws_vpc.focela_vpc.id
-  cidr_block        = "10.0.4.0/24"
-  availability_zone = "ap-northeast-1c"
+  vpc_id     = aws_vpc.focela_vpc.id
+  cidr_block = var.private_subnet_c_cidr
+  availability_zone = "${var.aws_region}c"
 
   tags = {
     Name = "focela-private-subnet-c"
   }
 }
 
-# Internet Gateway for public access
-resource "aws_internet_gateway" "focela_internet_gateway" {
+# Internet Gateway
+resource "aws_internet_gateway" "focela_igw" {
   vpc_id = aws_vpc.focela_vpc.id
 
   tags = {
@@ -64,8 +67,8 @@ resource "aws_internet_gateway" "focela_internet_gateway" {
   }
 }
 
-# NAT Gateway for private subnets to access the internet
-resource "aws_nat_gateway" "focela_nat_gateway" {
+# NAT Gateway for private subnets
+resource "aws_nat_gateway" "focela_nat_gw" {
   allocation_id = aws_eip.focela_nat_eip.id
   subnet_id     = aws_subnet.focela_public_subnet_a.id
 
@@ -76,16 +79,20 @@ resource "aws_nat_gateway" "focela_nat_gateway" {
 
 # Elastic IP for NAT Gateway
 resource "aws_eip" "focela_nat_eip" {
-  domain = "vpc"  # Use domain instead of vpc
+  domain = "vpc"
+
+  tags = {
+    Name = "focela-nat-eip"
+  }
 }
 
-# Route Table for public subnet
-resource "aws_route_table" "focela_public_route_table" {
+# Route table for public subnets
+resource "aws_route_table" "focela_public_rt" {
   vpc_id = aws_vpc.focela_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.focela_internet_gateway.id
+    gateway_id = aws_internet_gateway.focela_igw.id
   }
 
   tags = {
@@ -93,25 +100,25 @@ resource "aws_route_table" "focela_public_route_table" {
   }
 }
 
-# Associate Public Subnet A with Public Route Table
-resource "aws_route_table_association" "focela_public_a_association" {
+# Route table association for Public Subnet A
+resource "aws_route_table_association" "focela_public_subnet_a_rt_assoc" {
   subnet_id      = aws_subnet.focela_public_subnet_a.id
-  route_table_id = aws_route_table.focela_public_route_table.id
+  route_table_id = aws_route_table.focela_public_rt.id
 }
 
-# Associate Public Subnet C with Public Route Table
-resource "aws_route_table_association" "focela_public_c_association" {
+# Route table association for Public Subnet C
+resource "aws_route_table_association" "focela_public_subnet_c_rt_assoc" {
   subnet_id      = aws_subnet.focela_public_subnet_c.id
-  route_table_id = aws_route_table.focela_public_route_table.id
+  route_table_id = aws_route_table.focela_public_rt.id
 }
 
-# Route Table for private subnet with NAT gateway
-resource "aws_route_table" "focela_private_route_table" {
+# Route table for private subnets
+resource "aws_route_table" "focela_private_rt" {
   vpc_id = aws_vpc.focela_vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.focela_nat_gateway.id
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.focela_nat_gw.id
   }
 
   tags = {
@@ -119,14 +126,14 @@ resource "aws_route_table" "focela_private_route_table" {
   }
 }
 
-# Associate Private Subnet A with Private Route Table
-resource "aws_route_table_association" "focela_private_a_association" {
+# Route table association for Private Subnet A
+resource "aws_route_table_association" "focela_private_subnet_a_rt_assoc" {
   subnet_id      = aws_subnet.focela_private_subnet_a.id
-  route_table_id = aws_route_table.focela_private_route_table.id
+  route_table_id = aws_route_table.focela_private_rt.id
 }
 
-# Associate Private Subnet C with Private Route Table
-resource "aws_route_table_association" "focela_private_c_association" {
+# Route table association for Private Subnet C
+resource "aws_route_table_association" "focela_private_subnet_c_rt_assoc" {
   subnet_id      = aws_subnet.focela_private_subnet_c.id
-  route_table_id = aws_route_table.focela_private_route_table.id
+  route_table_id = aws_route_table.focela_private_rt.id
 }
