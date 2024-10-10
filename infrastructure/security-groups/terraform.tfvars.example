@@ -1,20 +1,14 @@
-# The VPC ID where the security groups will be deployed
-vpc_id = "vpc-xxxxxxxxxxxxxxxxx"
+# Example terraform.tfvars for Security Groups
 
-# CIDR blocks allowed to connect to the services (e.g., trusted IPs or ranges)
-allowed_cidr_blocks = ["0.0.0.0/0"]
+# VPC ID where the security groups will be applied
+vpc_id = "vpc-xxxxxxxx"
 
-# Security Group ID for Redis
-redis_sg_id = "sg-xxxxxxxxxxxxxxxxx"
+# List of allowed CIDR blocks for inbound traffic (adjust based on security requirements)
+# Replace "x.x.x.x/32" with your trusted IP ranges or use "0.0.0.0/0" for open access (not recommended for production)
+allowed_cidr_blocks = ["x.x.x.x/32"]
 
-# Security Group ID for PostgreSQL (RDS)
-postgres_sg_id = "sg-yyyyyyyyyyyyyyyyy"
+# Example: For open access (testing only)
+# allowed_cidr_blocks = ["0.0.0.0/0"]
 
-# Security Group ID for GitLab
-gitlab_sg_id = "sg-zzzzzzzzzzzzzzzzz"
-
-# Security Group ID for EKS Nodes
-eks_node_sg_id = "sg-aaaaaaaaaaaaaaaaa"
-
-# Security Group ID for EKS Control Plane
-eks_control_sg_id = "sg-bbbbbbbbbbbbbbbbb"
+# Replace with the actual security group IDs, if needed (for specific integrations)
+vpc_security_group_ids = ["sg-xxxxxxxx", "sg-yyyyyyyy"]
