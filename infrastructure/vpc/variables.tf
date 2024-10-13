@@ -1,35 +1,36 @@
-# AWS region where resources will be deployed
-variable "aws_region" {
-  description = "The AWS region to deploy resources"
-  type        = string
+# AWS region where the infrastructure is deployed (US East - N. Virginia)
+variable "region" {
+  description = "The AWS region where resources will be created"
+  default     = "us-east-1"
 }
 
 # CIDR block for the VPC
 variable "vpc_cidr" {
-  description = "The CIDR block for the VPC"
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+# Name for the VPC
+variable "vpc_name" {
+  description = "Name of the VPC"
   type        = string
 }
 
-# CIDR block for Public Subnet A
-variable "public_subnet_a_cidr" {
-  description = "The CIDR block for Public Subnet A"
-  type        = string
+# Availability Zones to deploy the VPC in
+variable "azs" {
+  description = "List of availability zones"
+  type        = list(string)
 }
 
-# CIDR block for Public Subnet C
-variable "public_subnet_c_cidr" {
-  description = "The CIDR block for Public Subnet C"
-  type        = string
+# Public subnets configuration
+variable "public_subnets" {
+  description = "List of public subnets"
+  type        = list(string)
 }
 
-# CIDR block for Private Subnet A
-variable "private_subnet_a_cidr" {
-  description = "The CIDR block for Private Subnet A"
-  type        = string
-}
-
-# CIDR block for Private Subnet C
-variable "private_subnet_c_cidr" {
-  description = "The CIDR block for Private Subnet C"
-  type        = string
+# Private subnets configuration
+variable "private_subnets" {
+  description = "List of private subnets"
+  type        = list(string)
 }

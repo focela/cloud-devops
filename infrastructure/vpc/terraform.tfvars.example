@@ -1,19 +1,19 @@
-# Example terraform.tfvars file for VPC configuration
+# Values for the VPC name, CIDR block, and subnets configuration
 
-# AWS region where resources will be deployed
-aws_region = "ap-northeast-1"
+# Name of the VPC
+vpc_name = "focela-main-vpc"
 
 # CIDR block for the VPC
 vpc_cidr = "10.0.0.0/16"
 
-# CIDR block for Public Subnet A (replace with actual subnet CIDR)
-public_subnet_a_cidr = "10.0.1.0/24"
+# AWS region where the VPC will be created
+region = "us-east-1"
 
-# CIDR block for Public Subnet C (replace with actual subnet CIDR)
-public_subnet_c_cidr = "10.0.3.0/24"
+# Availability Zones in US East (N. Virginia)
+azs = ["us-east-1a", "us-east-1b"]
 
-# CIDR block for Private Subnet A (replace with actual subnet CIDR)
-private_subnet_a_cidr = "10.0.2.0/24"
+# Public subnet CIDR blocks
+public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
 
-# CIDR block for Private Subnet C (replace with actual subnet CIDR)
-private_subnet_c_cidr = "10.0.4.0/24"
+# Private subnet CIDR blocks
+private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
