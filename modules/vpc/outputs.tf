@@ -1,23 +1,17 @@
-# Output the ID of the VPC
+# Output the VPC ID for future reference
 output "vpc_id" {
-  description = "ID of the VPC"
-  value       = aws_vpc.focela_vpc.id
+  description = "ID of the VPC for Focela Technologies"
+  value       = aws_vpc.main.id
 }
 
-# Output the IDs of the private subnets, mapping them by availability zone
-output "private_subnets" {
-  description = "List of private subnet IDs"
-  value       = { for az, subnet in aws_subnet.focela_private_subnets : az => subnet.id }
-}
-
-# Output the IDs of the public subnets, mapping them by availability zone
+# Output the public subnet IDs for load balancers or other public resources
 output "public_subnets" {
   description = "List of public subnet IDs"
-  value       = { for az, subnet in aws_subnet.focela_public_subnets : az => subnet.id }
+  value       = aws_subnet.public[*].id
 }
 
-# Output the ID of the security group for the VPC
-output "vpc_security_group_id" {
-  description = "ID of the Security Group for the VPC"
-  value       = aws_security_group.focela_vpc_sg.id
+# Output the private subnet IDs for internal services
+output "private_subnets" {
+  description = "List of private subnet IDs"
+  value       = aws_subnet.private[*].id
 }
