@@ -1,0 +1,47 @@
+services:
+  npm_db:
+    container_name: npm_db
+    restart: always
+    image: "jc21/mariadb-aria:latest"
+    environment:
+      - MYSQL_USER=${NPM_DB_USER:-npm}
+      - MYSQL_DATABASE=${NPM_DB_NAME:-npm_db_name}
+      - MYSQL_PASSWORD=${NPM_DB_PASSWORD:-npm_password}
+      - MYSQL_ROOT_PASSWORD=${NPM_DB_ROOT_PASSWORD:-npm_root_password}
+    volumes:
+      - /home/data/npm/mysql:/var/lib/mysql
+    networks:
+      - focela_proxy_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  proxy_manager:
+    container_name: proxy_manager
+    restart: always
+    image: "jc21/nginx-proxy-manager:2.12.1"
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      - DB_MYSQL_HOST=${DB_MYSQL_HOST:-npm_db}
+      - DB_MYSQL_PORT=${DB_MYSQL_PORT:-3306}
+      - DB_MYSQL_USER=${DB_MYSQL_USER:-npm}
+      - DB_MYSQL_NAME=${DB_MYSQL_NAME:-npm_production}
+      - DB_MYSQL_PASSWORD=${DB_MYSQL_PASSWORD:-npm_password}
+    volumes:
+      - /home/data/npm/data:/data
+      - /home/data/npm/letsencrypt:/etc/letsencrypt
+    depends_on:
+      npm_db:
+        condition: service_healthy
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    driver: bridge
+    name: proxy_network
