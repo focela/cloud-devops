@@ -103,12 +103,6 @@ tmp/
 ### Docker ###
 .dockerignore
 
-### Kubernetes ###
-.kube/
-*.kubeconfig
-*.yaml
-secrets.yaml
-
 ### Environment Files ###
 .env
 
