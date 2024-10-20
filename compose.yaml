@@ -11,7 +11,7 @@ services:
     volumes:
       - /home/data/npm/mysql:/var/lib/mysql
     networks:
-      - focela_proxy_network
+      - proxy_network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 30s
