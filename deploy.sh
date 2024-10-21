@@ -12,24 +12,28 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-# Directory path for mounting data
-DATA_DIR="/home/data/npm"
+# Directory paths for mounting data
+DATA_DIR_NPM="/home/data/npm"
+DATA_DIR_GITLAB="/home/data/gitlab"
 
-# Create the necessary directories if they do not exist
-if [ ! -d "$DATA_DIR/mysql" ]; then
-  echo "📁 Creating directory: $DATA_DIR/mysql"
-  mkdir -p "$DATA_DIR/mysql"
-fi
+# Function to create necessary directories if they do not exist
+create_directory() {
+  local dir=$1
+  if [ ! -d "$dir" ]; then
+    echo "📁 Creating directory: $dir"
+    mkdir -p "$dir"
+  fi
+}
 
-if [ ! -d "$DATA_DIR/data" ]; then
-  echo "📁 Creating directory: $DATA_DIR/data"
-  mkdir -p "$DATA_DIR/data"
-fi
+# Create directories for NPM (Nginx Proxy Manager)
+create_directory "$DATA_DIR_NPM/mysql"
+create_directory "$DATA_DIR_NPM/data"
+create_directory "$DATA_DIR_NPM/letsencrypt"
 
-if [ ! -d "$DATA_DIR/letsencrypt" ]; then
-  echo "📁 Creating directory: $DATA_DIR/letsencrypt"
-  mkdir -p "$DATA_DIR/letsencrypt"
-fi
+# Create directories for GitLab
+create_directory "$DATA_DIR_GITLAB/database"
+create_directory "$DATA_DIR_GITLAB/redis"
+create_directory "$DATA_DIR_GITLAB"
 
 echo "✅ All necessary directories have been created."
 
@@ -45,8 +49,14 @@ fi
 # Change to the directory containing docker-compose.yml
 cd "$COMPOSE_DIR"
 
-# Run Docker Compose to deploy Nginx Proxy Manager
-echo "🚀 Deploying Nginx Proxy Manager with Docker Compose from $COMPOSE_DIR..."
+# Run Docker Compose to deploy Nginx Proxy Manager and GitLab
+echo "🚀 Deploying internal services with Docker Compose from $COMPOSE_DIR..."
 docker-compose up -d
 
-echo "🎉 Nginx Proxy Manager has been deployed successfully."
+# Check if deployment was successful
+if [ $? -eq 0 ]; then
+  echo "🎉 Internal services have been deployed successfully."
+else
+  echo "❌ Error: Failed to deploy internal services." >&2
+  exit 1
+fi
