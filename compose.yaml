@@ -185,7 +185,7 @@ services:
     networks:
       - focela_network
     healthcheck:
-      test: [ "CMD", "gitlab-runner", "status" ]
+      test: ["CMD", "gitlab-runner", "status"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -253,6 +253,11 @@ services:
       - /home/data/jira/mysql:/var/lib/mysql
     networks:
       - focela_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   jira:
     container_name: jira
@@ -273,6 +278,12 @@ services:
       - jira_db
     networks:
       - focela_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
   focela_network:
