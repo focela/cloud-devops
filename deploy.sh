@@ -15,6 +15,7 @@ fi
 # Directory paths for mounting data
 DATA_DIR_NPM="/home/data/npm"
 DATA_DIR_GITLAB="/home/data/gitlab"
+DATA_DIR_JIRA="/home/data/jira"
 
 # Function to create necessary directories if they do not exist
 create_directory() {
@@ -35,6 +36,10 @@ create_directory "$DATA_DIR_GITLAB/database"
 create_directory "$DATA_DIR_GITLAB/redis"
 create_directory "$DATA_DIR_GITLAB"
 
+# Create directories for Jira
+create_directory "$DATA_DIR_JIRA/mysql"
+create_directory "$DATA_DIR_JIRA/data"
+
 echo "✅ All necessary directories have been created."
 
 # Path to the directory containing the docker-compose.yml file
@@ -49,7 +54,7 @@ fi
 # Change to the directory containing docker-compose.yml
 cd "$COMPOSE_DIR"
 
-# Run Docker Compose to deploy Nginx Proxy Manager and GitLab
+# Run Docker Compose to deploy services
 echo "🚀 Deploying internal services with Docker Compose from $COMPOSE_DIR..."
 docker-compose up -d
 
