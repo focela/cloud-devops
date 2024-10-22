@@ -38,7 +38,7 @@ create_directory "$DATA_DIR_GITLAB"
 
 # Create directories for Jira
 create_directory "$DATA_DIR_JIRA/mysql"
-create_directory "$DATA_DIR_JIRA/data"
+create_directory "$DATA_DIR_JIRA/home_data"
 
 echo "✅ All necessary directories have been created."
 

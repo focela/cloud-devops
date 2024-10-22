@@ -273,7 +273,7 @@ services:
     ports:
       - ${JIRA_PORT:-8090}:8090
     volumes:
-      - /home/data/jira/data:/var/jira
+      - /home/data/jira/home_data:/var/jira
     depends_on:
       - jira_db
     networks:
