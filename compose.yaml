@@ -239,6 +239,40 @@ services:
       retries: 5
       start_period: 30s
 
+  jira_db:
+    container_name: jira_db
+    restart: always
+    image: mysql:8.0
+    environment:
+      - MYSQL_USER=${JIRA_DB_USER:-jira}
+      - MYSQL_DATABASE=${JIRA_DB_NAME:-jira_db_name}
+      - MYSQL_PASSWORD=${JIRA_DB_PASSWORD:-jira_password}
+      - MYSQL_ROOT_PASSWORD=${JIRA_DB_ROOT_PASSWORD:-jira_root_password}
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin']
+    volumes:
+      - /home/data/jira/mysql:/var/lib/mysql
+    networks:
+      - focela_network
+
+  jira:
+    container_name: jira
+    restart: always
+    image: focela/jira:${JIRA_VERSION:-9.12.14}
+    environment:
+      - ATL_PROXY_NAME=${JIRA_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${JIRA_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${JIRA_ATL_TOMCAT_PORT:-8080}
+      - ATL_TOMCAT_SCHEME=${JIRA_ATL_TOMCAT_SCHEME:-https}
+      - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-true}
+      - TZ=${TZ:-UTC}
+    ports:
+      - ${JIRA_PORT:-8090}:8090
+    volumes:
+      - /home/data/jira/data:/var/jira
+    depends_on:
+      - jira_db
+    networks:
+      - focela_network
 
 networks:
   focela_network:
