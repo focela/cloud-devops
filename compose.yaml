@@ -264,7 +264,7 @@ services:
       - ATL_TOMCAT_PORT=${JIRA_ATL_TOMCAT_PORT:-8080}
       - ATL_TOMCAT_SCHEME=${JIRA_ATL_TOMCAT_SCHEME:-https}
       - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-true}
-      - TZ=${TZ:-UTC}
+      - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
     ports:
       - ${JIRA_PORT:-8090}:8090
     volumes:
