@@ -271,7 +271,7 @@ services:
       - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-true}
       - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
     ports:
-      - ${JIRA_PORT:-8090}:8090
+      - ${JIRA_PORT:-8090}:8080
     volumes:
       - /home/data/jira/home_data:/var/jira
     depends_on:
