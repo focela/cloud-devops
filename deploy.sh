@@ -13,9 +13,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
 fi
 
 # Directory paths for mounting data
-DATA_DIR_NPM="/home/data/npm"
-DATA_DIR_GITLAB="/home/data/gitlab"
-DATA_DIR_JIRA="/home/data/jira"
+DATA_DIR="/home/data"
 
 # Function to create necessary directories if they do not exist
 create_directory() {
@@ -26,37 +24,21 @@ create_directory() {
   fi
 }
 
-# Function to set permissions for a directory
+# Function to set permissions for the /home/data directory
 set_permissions() {
   local dir=$1
-  local user_group=$2
   echo "🔒 Setting permissions for: $dir"
-  chown -R "$user_group" "$dir"
+  chown -R root:root "$dir"
   chmod -R 755 "$dir"
 }
 
-# Create directories for NPM (Nginx Proxy Manager)
-create_directory "$DATA_DIR_NPM/mysql"
-create_directory "$DATA_DIR_NPM/data"
-create_directory "$DATA_DIR_NPM/letsencrypt"
+# Create main data directories
+create_directory "$DATA_DIR/npm"
+create_directory "$DATA_DIR/gitlab"
+create_directory "$DATA_DIR/jira"
 
-# Set permissions for NPM directories
-set_permissions "$DATA_DIR_NPM" "www-data:www-data"
-
-# Create directories for GitLab
-create_directory "$DATA_DIR_GITLAB/database"
-create_directory "$DATA_DIR_GITLAB/redis"
-create_directory "$DATA_DIR_GITLAB"
-
-# Set permissions for GitLab directories
-set_permissions "$DATA_DIR_GITLAB" "git:git"
-
-# Create directories for Jira
-create_directory "$DATA_DIR_JIRA/mysql"
-create_directory "$DATA_DIR_JIRA/home_data"
-
-# Set permissions for Jira directories
-set_permissions "$DATA_DIR_JIRA" "jira:jira"
+# Set permissions for the /home/data directory and its subdirectories
+set_permissions "$DATA_DIR"
 
 echo "✅ All necessary directories have been created and permissions set."
 
