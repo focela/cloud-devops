@@ -26,21 +26,39 @@ create_directory() {
   fi
 }
 
+# Function to set permissions for a directory
+set_permissions() {
+  local dir=$1
+  local user_group=$2
+  echo "🔒 Setting permissions for: $dir"
+  chown -R "$user_group" "$dir"
+  chmod -R 755 "$dir"
+}
+
 # Create directories for NPM (Nginx Proxy Manager)
 create_directory "$DATA_DIR_NPM/mysql"
 create_directory "$DATA_DIR_NPM/data"
 create_directory "$DATA_DIR_NPM/letsencrypt"
+
+# Set permissions for NPM directories
+set_permissions "$DATA_DIR_NPM" "www-data:www-data"
 
 # Create directories for GitLab
 create_directory "$DATA_DIR_GITLAB/database"
 create_directory "$DATA_DIR_GITLAB/redis"
 create_directory "$DATA_DIR_GITLAB"
 
+# Set permissions for GitLab directories
+set_permissions "$DATA_DIR_GITLAB" "git:git"
+
 # Create directories for Jira
 create_directory "$DATA_DIR_JIRA/mysql"
 create_directory "$DATA_DIR_JIRA/home_data"
 
-echo "✅ All necessary directories have been created."
+# Set permissions for Jira directories
+set_permissions "$DATA_DIR_JIRA" "jira:jira"
+
+echo "✅ All necessary directories have been created and permissions set."
 
 # Path to the directory containing the docker-compose.yml file
 COMPOSE_DIR="/var/www/cloud-devops"
