@@ -12,7 +12,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-# Directory paths for mounting data
+# Directory path for mounting data
 DATA_DIR="/home/data"
 
 # Function to create necessary directories if they do not exist
@@ -24,20 +24,33 @@ create_directory() {
   fi
 }
 
-# Function to set permissions for the /home/data directory
+# Function to set permissions for all directories in /home/data
 set_permissions() {
   local dir=$1
-  echo "🔒 Setting permissions for: $dir"
-  chown -R root:root "$dir"
+  echo "🔒 Setting permissions for all subdirectories in: $dir"
+
+  # Set permissions for NPM
+  create_directory "$dir/npm/mysql"
+  create_directory "$dir/npm/data"
+  create_directory "$dir/npm/letsencrypt"
+
+  # Set permissions for GitLab
+  create_directory "$dir/gitlab/database"
+  create_directory "$dir/gitlab/redis"
+
+  # Set permissions for JIRA
+  create_directory "$dir/jira/mysql"
+  create_directory "$dir/jira/home_data"
+
+  # Apply ownership and permissions
+  chown -R 999:999 "$dir"
   chmod -R 755 "$dir"
 }
 
-# Create main data directories
-create_directory "$DATA_DIR/npm"
-create_directory "$DATA_DIR/gitlab"
-create_directory "$DATA_DIR/jira"
+# Create main data directory
+create_directory "$DATA_DIR"
 
-# Set permissions for the /home/data directory and its subdirectories
+# Set permissions for all subdirectories within /home/data
 set_permissions "$DATA_DIR"
 
 echo "✅ All necessary directories have been created and permissions set."
