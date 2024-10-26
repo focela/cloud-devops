@@ -44,7 +44,7 @@ set_permissions() {
 
   # Apply ownership and permissions
   chown -R 999:999 "$dir"
-  chmod -R 755 "$dir"
+  chmod -R 777 "$dir"
 }
 
 # Create main data directory
