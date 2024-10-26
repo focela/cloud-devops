@@ -66,3 +66,10 @@ else
   echo "❌ Error: Failed to deploy internal services." >&2
   exit 1
 fi
+
+# Run Docker Compose to stop services, then start services again
+echo "🛑 Stopping Docker Compose services..."
+docker-compose down
+
+echo "🚀 Starting Docker Compose services..."
+docker-compose up -d
