@@ -31,9 +31,14 @@ create_directory "$DATA_DIR/npm/letsencrypt"
 create_directory "$DATA_DIR/gitlab/database"
 create_directory "$DATA_DIR/gitlab/redis"
 create_directory "$DATA_DIR/jira/mysql"
-create_directory "$DATA_DIR/jira/home_data"
+create_directory "$DATA_DIR/jira/data"
 
 echo "✅ All necessary directories have been created."
+
+# Set ownership and permissions for Jira and GitLab directories
+chown -R jira:jira "$DATA_DIR/jira"
+chown -R git:git "$DATA_DIR/gitlab"
+chmod -R 775 "$DATA_DIR/jira" "$DATA_DIR/gitlab"  # Set permissions to 775 for Jira and GitLab directories
 
 # Path to the directory containing the docker-compose.yml file
 COMPOSE_DIR="/var/www/cloud-devops"
@@ -51,14 +56,6 @@ cd "$COMPOSE_DIR"
 echo "🚀 Deploying internal services with Docker Compose from $COMPOSE_DIR..."
 docker-compose up -d
 
-# Wait for services to start and then set permissions
-echo "⏳ Waiting for services to initialize..."
-sleep 120
-
-# Apply permissions after Docker Compose has created files
-echo "🔒 Setting permissions for all directories in: $DATA_DIR"
-chmod -R 777 "$DATA_DIR"
-
 # Check if deployment was successful
 if [ $? -eq 0 ]; then
   echo "🎉 Internal services have been deployed successfully."
@@ -66,10 +63,3 @@ else
   echo "❌ Error: Failed to deploy internal services." >&2
   exit 1
 fi
-
-# Run Docker Compose to stop services, then start services again
-echo "🛑 Stopping Docker Compose services..."
-docker-compose down
-
-echo "🚀 Starting Docker Compose services..."
-docker-compose up -d
