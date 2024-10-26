@@ -24,36 +24,16 @@ create_directory() {
   fi
 }
 
-# Function to set permissions for all directories in /home/data
-set_permissions() {
-  local dir=$1
-  echo "🔒 Setting permissions for all subdirectories in: $dir"
+# Create main data directory and subdirectories for services
+create_directory "$DATA_DIR/npm/mysql"
+create_directory "$DATA_DIR/npm/data"
+create_directory "$DATA_DIR/npm/letsencrypt"
+create_directory "$DATA_DIR/gitlab/database"
+create_directory "$DATA_DIR/gitlab/redis"
+create_directory "$DATA_DIR/jira/mysql"
+create_directory "$DATA_DIR/jira/home_data"
 
-  # Set permissions for NPM
-  create_directory "$dir/npm/mysql"
-  create_directory "$dir/npm/data"
-  create_directory "$dir/npm/letsencrypt"
-
-  # Set permissions for GitLab
-  create_directory "$dir/gitlab/database"
-  create_directory "$dir/gitlab/redis"
-
-  # Set permissions for JIRA
-  create_directory "$dir/jira/mysql"
-  create_directory "$dir/jira/home_data"
-
-  # Apply ownership and permissions
-  chown -R 999:999 "$dir"
-  chmod -R 777 "$dir"
-}
-
-# Create main data directory
-create_directory "$DATA_DIR"
-
-# Set permissions for all subdirectories within /home/data
-set_permissions "$DATA_DIR"
-
-echo "✅ All necessary directories have been created and permissions set."
+echo "✅ All necessary directories have been created."
 
 # Path to the directory containing the docker-compose.yml file
 COMPOSE_DIR="/var/www/cloud-devops"
@@ -70,6 +50,14 @@ cd "$COMPOSE_DIR"
 # Run Docker Compose to deploy services
 echo "🚀 Deploying internal services with Docker Compose from $COMPOSE_DIR..."
 docker-compose up -d
+
+# Wait for services to start and then set permissions
+echo "⏳ Waiting for services to initialize..."
+sleep 120
+
+# Apply permissions after Docker Compose has created files
+echo "🔒 Setting permissions for all directories in: $DATA_DIR"
+chmod -R 777 "$DATA_DIR"
 
 # Check if deployment was successful
 if [ $? -eq 0 ]; then
