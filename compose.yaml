@@ -22,8 +22,7 @@ services:
     container_name: gitlab_redis
     restart: always
     image: redis:6.2.6
-    command:
-      - --loglevel warning
+    command: ["--loglevel", "warning"]
     volumes:
       - gitlab_redis_data:/data:Z
     networks:
@@ -194,7 +193,7 @@ services:
   npm_db:
     container_name: npm_db
     restart: always
-    image: "jc21/mariadb-aria:latest"
+    image: jc21/mariadb-aria:latest
     environment:
       - MYSQL_USER=${NPM_DB_USER:-npm}
       - MYSQL_DATABASE=${NPM_DB_NAME:-npm_db_name}
@@ -213,7 +212,7 @@ services:
   proxy_manager:
     container_name: proxy_manager
     restart: always
-    image: "jc21/nginx-proxy-manager:2.12.1"
+    image: jc21/nginx-proxy-manager:2.12.1
     ports:
       - '80:80'
       - '81:81'
@@ -291,11 +290,11 @@ networks:
     name: focela_network
 
 volumes:
-  - gitlab_db_data:
-  - gitlab_redis_data:
-  - gitlab_data:
-  - npm_db_data:
-  - npm_data:
-  - npm_letsencrypt:
-  - jira_db_data:
-  - jira_data:
+  gitlab_db_data:
+  gitlab_redis_data:
+  gitlab_data:
+  npm_db_data:
+  npm_data:
+  npm_letsencrypt:
+  jira_db_data:
+  jira_data:
