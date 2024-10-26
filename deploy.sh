@@ -24,6 +24,21 @@ create_directory() {
   fi
 }
 
+# Function to create user and group if they don't exist
+create_user_and_group() {
+  local user=$1
+  local group=$2
+  if ! id -u "$user" &>/dev/null; then
+    echo "👤 Creating user: $user and group: $group"
+    sudo groupadd "$group"
+    sudo useradd -g "$group" "$user"
+  fi
+}
+
+# Ensure jira and git users and groups exist
+create_user_and_group "jira" "jira"
+create_user_and_group "git" "git"
+
 # Create main data directory and subdirectories for services
 create_directory "$DATA_DIR/npm/mysql"
 create_directory "$DATA_DIR/npm/data"
