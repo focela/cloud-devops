@@ -392,3 +392,5 @@ volumes:
   jira_data:
   confluence_db_data:
   confluence_data:
+  crowd_db_data:
+  crowd_data:
