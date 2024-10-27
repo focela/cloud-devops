@@ -314,7 +314,7 @@ services:
       - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8090}
       - ATL_TOMCAT_SCHEME=${CONFLUENCE_ATL_TOMCAT_SCHEME:-https}
       - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-true}
-      - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
+      - TZ=${CONFLUENCE_TZ:-Asia/Ho_Chi_Minh}
     ports:
       - ${CONFLUENCE_PORT:-8090}:8090
     volumes:
