@@ -343,10 +343,6 @@ volumes:
   npm_data:
   npm_letsencrypt:
   jira_db_data:
-    external: false
   jira_data:
-    external: false
   confluence_db_data:
-    external: false
   confluence_data:
-    external: false
