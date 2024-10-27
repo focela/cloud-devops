@@ -362,7 +362,7 @@ services:
       - ATL_TOMCAT_SECURE=${CROWD_ATL_TOMCAT_SECURE:-true}
       - TZ=${CROWD_TZ:-Asia/Ho_Chi_Minh}
     ports:
-      - ${CONFLUENCE_PORT:-8095}:8095
+      - ${CROWD_PORT:-8095}:8095
     volumes:
       - crowd_data:/var/crowd
     depends_on:
