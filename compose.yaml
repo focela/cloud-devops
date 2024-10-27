@@ -316,7 +316,7 @@ services:
       - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-true}
       - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
     ports:
-      - ${JIRA_PORT:-8090}:8090
+      - ${CONFLUENCE_PORT:-8090}:8090
     volumes:
       - confluence_data:/var/confluence
     depends_on:
