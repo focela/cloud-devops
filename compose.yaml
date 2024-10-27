@@ -284,6 +284,52 @@ services:
       retries: 5
       start_period: 30s
 
+  confluence_db:
+    container_name: confluence_db
+    restart: always
+    image: mysql:8.0
+    environment:
+      - MYSQL_USER=${CONFLUENCE_DB_USER:-confluence}
+      - MYSQL_DATABASE=${CONFLUENCE_DB_NAME:-confluence_db_name}
+      - MYSQL_PASSWORD=${CONFLUENCE_DB_PASSWORD:-confluence_password}
+      - MYSQL_ROOT_PASSWORD=${CONFLUENCE_DB_ROOT_PASSWORD:-confluence_root_password}
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin', '--transaction-isolation=READ-COMMITTED', '--innodb_log_file_size=256M', '--max_allowed_packet=256M','--log_bin_trust_function_creators=1']
+    volumes:
+      - confluence_db_data:/var/lib/mysql
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  confluence:
+    container_name: confluence
+    restart: always
+    image: focela/confluence:${CONFLUENCE_VERSION:-8.5.16}
+    environment:
+      - ATL_PROXY_NAME=${CONFLUENCE_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CONFLUENCE_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8080}
+      - ATL_TOMCAT_SCHEME=${CONFLUENCE_ATL_TOMCAT_SCHEME:-https}
+      - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-true}
+      - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
+    ports:
+      - ${JIRA_PORT:-8090}:8090
+    volumes:
+      - confluence_data:/var/confluence
+    depends_on:
+      - confluence_db
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 networks:
   focela_network:
     driver: bridge
@@ -298,3 +344,5 @@ volumes:
   npm_letsencrypt:
   jira_db_data:
   jira_data:
+  confluence_db_data:
+  confluence_data:
