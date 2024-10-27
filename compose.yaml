@@ -270,7 +270,7 @@ services:
       - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-true}
       - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
     ports:
-      - ${JIRA_PORT:-8090}:8080
+      - ${JIRA_PORT:-8080}:8080
     volumes:
       - jira_data:/var/jira
     depends_on:
@@ -311,7 +311,7 @@ services:
     environment:
       - ATL_PROXY_NAME=${CONFLUENCE_ATL_PROXY_NAME:-localhost}
       - ATL_PROXY_PORT=${CONFLUENCE_ATL_PROXY_PORT:-443}
-      - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8080}
+      - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8090}
       - ATL_TOMCAT_SCHEME=${CONFLUENCE_ATL_TOMCAT_SCHEME:-https}
       - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-true}
       - TZ=${JIRA_TZ:-Asia/Ho_Chi_Minh}
