@@ -330,6 +330,52 @@ services:
       retries: 5
       start_period: 30s
 
+  crowd_db:
+    container_name: crowd_db
+    restart: always
+    image: mysql:8.0
+    environment:
+      - MYSQL_USER=${CROWD_DB_USER:-crowd}
+      - MYSQL_DATABASE=${CROWD_DB_NAME:-crowd_db_name}
+      - MYSQL_PASSWORD=${CROWD_DB_PASSWORD:-crowd_password}
+      - MYSQL_ROOT_PASSWORD=${CROWD_DB_ROOT_PASSWORD:-crowd_root_password}
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin', '--transaction-isolation=READ-COMMITTED', '--innodb_log_file_size=256M', '--max_allowed_packet=256M','--log_bin_trust_function_creators=1']
+    volumes:
+      - crowd_db_data:/var/lib/mysql
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  crowd:
+    container_name: crowd
+    restart: always
+    image: focela/crowd:${CROWD_VERSION:-6.1.1}
+    environment:
+      - ATL_PROXY_NAME=${CROWD_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CROWD_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CROWD_ATL_TOMCAT_PORT:-8095}
+      - ATL_TOMCAT_SCHEME=${CROWD_ATL_TOMCAT_SCHEME:-https}
+      - ATL_TOMCAT_SECURE=${CROWD_ATL_TOMCAT_SECURE:-true}
+      - TZ=${CROWD_TZ:-Asia/Ho_Chi_Minh}
+    ports:
+      - ${CONFLUENCE_PORT:-8095}:8095
+    volumes:
+      - crowd_data:/var/crowd
+    depends_on:
+      - crowd_db
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8095"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 networks:
   focela_network:
     driver: bridge
