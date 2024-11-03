@@ -23,6 +23,34 @@ services:
       timeout: 10s
       retries: 5
 
+  confluence:
+    <<: *common-config
+    container_name: confluence
+    image: atlassian/confluence:${CONFLUENCE_VERSION:-8.5.16}
+    environment:
+      - ATL_PROXY_NAME=${CONFLUENCE_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CONFLUENCE_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8090}
+      - ATL_TOMCAT_SCHEME=${CONFLUENCE_ATL_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-false}
+      - CATALINA_OPTS=${CONFLUENCE_CATALINA_OPTS:--javaagent:/opt/atlassian/confluence/atlassian-agent.jar}
+    ports:
+      - ${CONFLUENCE_PORT:-8090}:8090
+    volumes:
+      - ./data/confluence/logs:/opt/atlassian/confluence/logs
+      - ./data/confluence/data:/var/atlassian/application-data/confluence
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/confluence/atlassian-agent.jar
+    depends_on:
+      - atlassian_db
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   jira:
     <<: *common-config
     container_name: jira
