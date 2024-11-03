@@ -101,7 +101,9 @@ logs/
 tmp/
 
 ### Docker ###
+!data/atlassian/atlassian-agent.jar
 .dockerignore
+data/*
 
 ### Environment Files ###
 .env
