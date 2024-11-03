@@ -1,0 +1,55 @@
+x-common-config: &common-config
+  environment:
+    TZ: ${COMMON_TZ:-Asia/Ho_Chi_Minh}
+  restart: always
+
+services:
+  atlassian_db:
+    <<: *common-config
+    container_name: atlassian_db
+    image: postgres:${ATLASSIAN_DB_VERSION:-14.10}
+    environment:
+      - POSTGRES_USER=${ATLASSIAN_DB_USER:-atlassian}
+      - POSTGRES_PASSWORD=${ATLASSIAN_DB_PASSWORD:-password}
+      - MULTIPLE_DATABASES=${ATLASSIAN_MULTIPLE_DATABASES:-db1,db2,db3}
+    volumes:
+      - ./data/atlassian/db:/var/lib/postgresql/data
+      - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ATLASSIAN_DB_USER:-atlassian}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  jira:
+    <<: *common-config
+    container_name: jira
+    image: atlassian/jira-software:${JIRA_VERSION:-9.12.14}
+    environment:
+      - ATL_PROXY_NAME=${JIRA_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${JIRA_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${JIRA_ATL_TOMCAT_PORT:-8080}
+      - ATL_TOMCAT_SCHEME=${JIRA_ATL_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-false}
+    ports:
+      - ${JIRA_PORT:-8080}:8080
+    volumes:
+      - ./data/jira/logs:/opt/atlassian/jira/logs
+      - ./data/jira/data:/var/atlassian/application-data/jira
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/jira/atlassian-agent.jar
+    depends_on:
+      - atlassian_db
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  focela_network:
+    driver: bridge
