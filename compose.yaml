@@ -78,6 +78,34 @@ services:
       retries: 5
       start_period: 30s
 
+  crowd:
+    <<: *common-config
+    container_name: crowd
+    image: atlassian/crowd:${CROWD_VERSION:-6.1.1}
+    environment:
+      - ATL_PROXY_NAME=${CROWD_ATL_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CROWD_ATL_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CROWD_ATL_TOMCAT_PORT:-8095}
+      - ATL_TOMCAT_SCHEME=${CROWD_ATL_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${CROWD_ATL_TOMCAT_SECURE:-false}
+      - CATALINA_OPTS=${CROWD_CATALINA_OPTS:--javaagent:/opt/atlassian/crowd/atlassian-agent.jar}
+    ports:
+      - ${CROWD_PORT:-8095}:8095
+    volumes:
+      - ./data/crowd/logs:/opt/atlassian/crowd/logs
+      - ./data/crowd/data:/var/atlassian/application-data/crowd
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/crowd/atlassian-agent.jar
+    depends_on:
+      - atlassian_db
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8095 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 networks:
   focela_network:
     driver: bridge
