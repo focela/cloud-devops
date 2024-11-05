@@ -13,7 +13,7 @@ services:
       - POSTGRES_PASSWORD=${ATLASSIAN_DB_PASSWORD:-password}
       - MULTIPLE_DATABASES=${ATLASSIAN_MULTIPLE_DATABASES:-db1,db2,db3}
     volumes:
-      - ./data/atlassian/db:/var/lib/postgresql/data
+      - /data/apps/atlassian_db:/var/lib/postgresql/data
       - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     networks:
       - focela_network
@@ -28,7 +28,7 @@ services:
     container_name: gitlab_db
     image: sameersbn/postgresql:${GITLAB_DB_VERSION:-14-20230628}
     volumes:
-      - ./data/gitlab/db:/var/lib/postgresql/data:Z
+      - /data/apps/gitlab_db:/var/lib/postgresql/data:Z
     environment:
       - DB_USER=${GITLAB_DB_USER:-gitlab}
       - DB_NAME=${GITLAB_DB_NAME:-gitlabhq_production}
@@ -56,8 +56,8 @@ services:
     ports:
       - ${CONFLUENCE_PORT:-8090}:8090
     volumes:
-      - ./data/confluence/logs:/opt/atlassian/confluence/logs
-      - ./data/confluence/data:/var/atlassian/application-data/confluence
+      - /data/logs/confluence:/opt/atlassian/confluence/logs
+      - /data/apps/confluence:/var/atlassian/application-data/confluence
       - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/confluence/atlassian-agent.jar
     depends_on:
       - atlassian_db
@@ -84,8 +84,8 @@ services:
     ports:
       - ${JIRA_PORT:-8080}:8080
     volumes:
-      - ./data/jira/logs:/opt/atlassian/jira/logs
-      - ./data/jira/data:/var/atlassian/application-data/jira
+      - /data/logs/jira:/opt/atlassian/jira/logs
+      - /data/apps/jira:/var/atlassian/application-data/jira
       - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/jira/atlassian-agent.jar
     depends_on:
       - atlassian_db
@@ -112,8 +112,8 @@ services:
     ports:
       - ${CROWD_PORT:-8095}:8095
     volumes:
-      - ./data/crowd/logs:/opt/atlassian/crowd/logs
-      - ./data/crowd/data:/var/atlassian/application-data/crowd
+      - /data/logs/crowd:/opt/atlassian/crowd/logs
+      - /data/apps/crowd:/var/atlassian/application-data/crowd
       - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/crowd/atlassian-agent.jar
     depends_on:
       - atlassian_db
@@ -132,7 +132,7 @@ services:
     image: redis:${GITLAB_REDIS_VERSION:-6.2.6}
     command: ["--loglevel", "warning"]
     volumes:
-      - ./data/gitlab/redis/data:/data:Z
+      - /data/apps/gitlab_redis:/data:Z
     networks:
       - focela_network
     healthcheck:
@@ -268,7 +268,8 @@ services:
       - OAUTH_AZURE_API_SECRET=${GITLAB_OAUTH_AZURE_API_SECRET}
       - OAUTH_AZURE_TENANT_ID=${GITLAB_OAUTH_AZURE_TENANT_ID}
     volumes:
-      - ./data/gitlab/data:/home/git/data:Z
+      - /data/logs/gitlab:/var/log/gitlab
+      - /data/apps/gitlab:/home/git/data:Z
     depends_on:
       - gitlab_db
       - gitlab_redis
