@@ -1,17 +1,17 @@
 x-common-config: &common-config
   environment:
-    TZ: ${COMMON_TZ:-Asia/Ho_Chi_Minh}
+    TZ: ${APP_TIMEZONE:-Asia/Ho_Chi_Minh}
   restart: always
 
 services:
   atlassian_db:
     <<: *common-config
     container_name: atlassian_db
-    image: postgres:${ATLASSIAN_DB_VERSION:-14.10}
+    image: postgres:${ATL_DB_VER:-14.10}
     environment:
-      - POSTGRES_USER=${ATLASSIAN_DB_USER:-atlassian}
-      - POSTGRES_PASSWORD=${ATLASSIAN_DB_PASSWORD:-password}
-      - MULTIPLE_DATABASES=${ATLASSIAN_MULTIPLE_DATABASES:-db1,db2,db3}
+      - POSTGRES_USER=${ATL_DB_USER:-atlassian}
+      - POSTGRES_PASSWORD=${ATL_DB_PASS:-secure_password}
+      - POSTGRES_MULTIPLE_DATABASES=${ATL_DB_NAMES:-db1,db2,db3}
     volumes:
       - /data/apps/atlassian_db:/var/lib/postgresql/data
       - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -19,112 +19,48 @@ services:
       - focela_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${ATLASSIAN_DB_USER:-atlassian}"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 5
 
   gitlab_db:
     <<: *common-config
     container_name: gitlab_db
-    image: sameersbn/postgresql:${GITLAB_DB_VERSION:-14-20230628}
+    image: sameersbn/postgresql:${GIT_DB_VER:-14-20230628}
+    environment:
+      - DB_USER=${GIT_DB_USER:-gitlab}
+      - DB_PASS=${GIT_DB_PASS:-secure_password}
+      - DB_NAME=${GIT_DB_NAME:-gitlabhq_production}
+      - DB_EXTENSION=${GIT_DB_EXT:-pg_trgm,btree_gist}
     volumes:
       - /data/apps/gitlab_db:/var/lib/postgresql/data:Z
-    environment:
-      - DB_USER=${GITLAB_DB_USER:-gitlab}
-      - DB_NAME=${GITLAB_DB_NAME:-gitlabhq_production}
-      - DB_PASS=${GITLAB_DB_PASS:-securepassword}
-      - DB_EXTENSION=${GITLAB_DB_EXTENSION:-pg_trgm,btree_gist}
     networks:
       - focela_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${GITLAB_DB_USER:-gitlab}"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 5
 
-  confluence:
+  proxy_db:
     <<: *common-config
-    container_name: confluence
-    image: atlassian/confluence:${CONFLUENCE_VERSION:-8.5.16}
+    container_name: proxy_db
+    restart: always
+    image: jc21/mariadb-aria:${PROXY_DB_VER:-latest}
     environment:
-      - ATL_PROXY_NAME=${CONFLUENCE_ATL_PROXY_NAME:-localhost}
-      - ATL_PROXY_PORT=${CONFLUENCE_ATL_PROXY_PORT:-443}
-      - ATL_TOMCAT_PORT=${CONFLUENCE_ATL_TOMCAT_PORT:-8090}
-      - ATL_TOMCAT_SCHEME=${CONFLUENCE_ATL_TOMCAT_SCHEME:-http}
-      - ATL_TOMCAT_SECURE=${CONFLUENCE_ATL_TOMCAT_SECURE:-false}
-      - CATALINA_OPTS=${CONFLUENCE_CATALINA_OPTS:--javaagent:/opt/atlassian/confluence/atlassian-agent.jar}
-    ports:
-      - ${CONFLUENCE_PORT:-8090}:8090
+      - MYSQL_USER=${PROXY_DB_USER:-proxy_user}
+      - MYSQL_PASSWORD=${PROXY_DB_PASS:-secure_password}
+      - MYSQL_ROOT_PASSWORD=${PROXY_DB_ROOT_PASS:-secure_root_password}
+      - MYSQL_DATABASE=${PROXY_DB_NAME:-proxy_production}
     volumes:
-      - /data/logs/confluence:/opt/atlassian/confluence/logs
-      - /data/apps/confluence:/var/atlassian/application-data/confluence
-      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/confluence/atlassian-agent.jar
-    depends_on:
-      - atlassian_db
+      - /data/apps/proxy_db:/var/lib/mysql
     networks:
       - focela_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8090 || exit 1"]
-      interval: 30s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 60s
       timeout: 10s
       retries: 5
-      start_period: 30s
-
-  jira:
-    <<: *common-config
-    container_name: jira
-    image: atlassian/jira-software:${JIRA_VERSION:-9.12.14}
-    environment:
-      - ATL_PROXY_NAME=${JIRA_ATL_PROXY_NAME:-localhost}
-      - ATL_PROXY_PORT=${JIRA_ATL_PROXY_PORT:-443}
-      - ATL_TOMCAT_PORT=${JIRA_ATL_TOMCAT_PORT:-8080}
-      - ATL_TOMCAT_SCHEME=${JIRA_ATL_TOMCAT_SCHEME:-http}
-      - ATL_TOMCAT_SECURE=${JIRA_ATL_TOMCAT_SECURE:-false}
-      - CATALINA_OPTS=${JIRA_CATALINA_OPTS:--javaagent:/opt/atlassian/jira/atlassian-agent.jar}
-    ports:
-      - ${JIRA_PORT:-8080}:8080
-    volumes:
-      - /data/logs/jira:/opt/atlassian/jira/logs
-      - /data/apps/jira:/var/atlassian/application-data/jira
-      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/jira/atlassian-agent.jar
-    depends_on:
-      - atlassian_db
-    networks:
-      - focela_network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-
-  crowd:
-    <<: *common-config
-    container_name: crowd
-    image: atlassian/crowd:${CROWD_VERSION:-6.1.1}
-    environment:
-      - ATL_PROXY_NAME=${CROWD_ATL_PROXY_NAME:-localhost}
-      - ATL_PROXY_PORT=${CROWD_ATL_PROXY_PORT:-443}
-      - ATL_TOMCAT_PORT=${CROWD_ATL_TOMCAT_PORT:-8095}
-      - ATL_TOMCAT_SCHEME=${CROWD_ATL_TOMCAT_SCHEME:-http}
-      - ATL_TOMCAT_SECURE=${CROWD_ATL_TOMCAT_SECURE:-false}
-      - CATALINA_OPTS=${CROWD_CATALINA_OPTS:--javaagent:/opt/atlassian/crowd/atlassian-agent.jar}
-    ports:
-      - ${CROWD_PORT:-8095}:8095
-    volumes:
-      - /data/logs/crowd:/opt/atlassian/crowd/logs
-      - /data/apps/crowd:/var/atlassian/application-data/crowd
-      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/crowd/atlassian-agent.jar
-    depends_on:
-      - atlassian_db
-    networks:
-      - focela_network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8095 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
 
   gitlab_redis:
     <<: *common-config
@@ -137,142 +73,231 @@ services:
       - focela_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 5
+
+  confluence:
+    <<: *common-config
+    container_name: confluence
+    image: atlassian/confluence:${CONF_VER:-8.5.16}
+    environment:
+      - ATL_PROXY_NAME=${CONF_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CONF_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CONF_TOMCAT_PORT:-8090}
+      - ATL_TOMCAT_SCHEME=${CONF_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${CONF_TOMCAT_SECURE:-false}
+      - CATALINA_OPTS=${CONF_CATALINA_OPTS:--javaagent:/opt/atlassian/confluence/atlassian-agent.jar}
+    ports:
+      - ${CONF_HTTP_PORT_BIND:-8090}:8090
+    depends_on:
+      atlassian_db:
+        condition: service_healthy
+    volumes:
+      - /data/logs/confluence:/opt/atlassian/confluence/logs
+      - /data/apps/confluence:/var/atlassian/application-data/confluence
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/confluence/atlassian-agent.jar
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090 || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  jira:
+    <<: *common-config
+    container_name: jira
+    image: atlassian/jira-software:${JIRA_VER:-9.12.14}
+    environment:
+      - ATL_PROXY_NAME=${JIRA_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${JIRA_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${JIRA_TOMCAT_PORT:-8080}
+      - ATL_TOMCAT_SCHEME=${JIRA_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${JIRA_TOMCAT_SECURE:-false}
+      - CATALINA_OPTS=${JIRA_CATALINA_OPTS:--javaagent:/opt/atlassian/jira/atlassian-agent.jar}
+    ports:
+      - ${JIRA_HTTP_PORT_BIND:-8080}:8080
+    depends_on:
+      atlassian_db:
+        condition: service_healthy
+    volumes:
+      - /data/logs/jira:/opt/atlassian/jira/logs
+      - /data/apps/jira:/var/atlassian/application-data/jira
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/jira/atlassian-agent.jar
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  crowd:
+    <<: *common-config
+    container_name: crowd
+    image: atlassian/crowd:${CROWD_VER:-6.1.1}
+    environment:
+      - ATL_PROXY_NAME=${CROWD_PROXY_NAME:-localhost}
+      - ATL_PROXY_PORT=${CROWD_PROXY_PORT:-443}
+      - ATL_TOMCAT_PORT=${CROWD_TOMCAT_PORT:-8095}
+      - ATL_TOMCAT_SCHEME=${CROWD_TOMCAT_SCHEME:-http}
+      - ATL_TOMCAT_SECURE=${CROWD_TOMCAT_SECURE:-false}
+      - CATALINA_OPTS=${CROWD_CATALINA_OPTS:--javaagent:/opt/atlassian/crowd/atlassian-agent.jar}
+    ports:
+      - ${CROWD_HTTP_PORT_BIND:-8095}:8095
+    depends_on:
+      atlassian_db:
+        condition: service_healthy
+    volumes:
+      - /data/logs/crowd:/opt/atlassian/crowd/logs
+      - /data/apps/crowd:/var/atlassian/application-data/crowd
+      - ./data/atlassian/atlassian-agent.jar:/opt/atlassian/crowd/atlassian-agent.jar
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8095 || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   gitlab:
     <<: *common-config
     container_name: gitlab
-    image: sameersbn/gitlab:${GITLAB_VERSION:-17.0.1}
+    image: sameersbn/gitlab:${GIT_VER:-17.0.1}
     ports:
-      - ${GITLAB_SSH_PORT:-10022}:22
-      - ${GITLAB_PORT:-10080}:80
+      - ${GIT_SSH_PORT_BIND:-10022}:22
+      - ${GIT_HTTP_PORT_BIND:-10080}:80
     environment:
-      - DEBUG=${GITLAB_DEBUG:-false}
+      - DEBUG=${GIT_DEBUG:-false}
 
-      - DB_ADAPTER=${GITLAB_DB_ADAPTER:-postgresql}
-      - DB_HOST=${GITLAB_DB_HOST:-gitlab_db}
-      - DB_PORT=${GITLAB_DB_PORT:-5432}
-      - DB_USER=${GITLAB_DB_USER:-gitlab}
-      - DB_NAME=${GITLAB_DB_NAME:-gitlabhq_production}
-      - DB_PASS=${GITLAB_DB_PASS:-securepassword}
+      - DB_ADAPTER=${GIT_DB_ADAPTER:-postgresql}
+      - DB_HOST=${GIT_DB_HOST:-gitlab_db}
+      - DB_PORT=${GIT_DB_PORT:-5432}
+      - DB_USER=${GIT_DB_USER:-gitlab}
+      - DB_PASS=${GIT_DB_PASS:-secure_password}
+      - DB_NAME=${GIT_DB_NAME:-gitlabhq_production}
 
-      - REDIS_HOST=${GITLAB_REDIS_HOST:-gitlab_redis}
-      - REDIS_PORT=${GITLAB_REDIS_PORT:-6379}
+      - REDIS_HOST=${GIT_REDIS_HOST:-gitlab_redis}
+      - REDIS_PORT=${GIT_REDIS_PORT:-6379}
 
-      - GITLAB_TIMEZONE=${GITLAB_TIMEZONE:-Asia/Ho_Chi_Minh}
+      - GITLAB_TIMEZONE=${GIT_TIMEZONE:-Asia/Ho_Chi_Minh}
 
-      - GITLAB_HTTPS=${GITLAB_HTTPS:-false}
-      - SSL_SELF_SIGNED=${GITLAB_SSL_SELF_SIGNED:-false}
+      - GITLAB_HTTPS=${GIT_HTTPS:-false}
+      - SSL_SELF_SIGNED=${GIT_SSL_SELF_SIGNED:-false}
 
-      - GITLAB_HOST=${GITLAB_HOST:-localhost}
-      - GITLAB_PORT=${GITLAB_PORT:-10080}
-      - GITLAB_SSH_PORT=${GITLAB_SSH_PORT:-10022}
-      - GITLAB_RELATIVE_URL_ROOT=${GITLAB_RELATIVE_URL_ROOT}
+      - GITLAB_HOST=${GIT_HOST:-localhost}
+      - GITLAB_PORT=${GIT_PORT:-10080}
+      - GITLAB_SSH_PORT=${GIT_SSH_PORT:-10022}
+      - GITLAB_RELATIVE_URL_ROOT=${GIT_RELATIVE_URL_ROOT}
       - GITLAB_SECRETS_DB_KEY_BASE=${GITLAB_SECRETS_DB_KEY_BASE:-long-and-random-alphanumeric-string}
       - GITLAB_SECRETS_SECRET_KEY_BASE=${GITLAB_SECRETS_SECRET_KEY_BASE:-long-and-random-alphanumeric-string}
       - GITLAB_SECRETS_OTP_KEY_BASE=${GITLAB_SECRETS_OTP_KEY_BASE:-long-and-random-alphanumeric-string}
 
-      - GITLAB_ROOT_PASSWORD=${GITLAB_ROOT_PASSWORD}
-      - GITLAB_ROOT_EMAIL=${GITLAB_ROOT_EMAIL}
+      - GITLAB_ROOT_PASSWORD=${GIT_ROOT_PASS}
+      - GITLAB_ROOT_EMAIL=${GIT_ROOT_EMAIL}
 
-      - GITLAB_NOTIFY_ON_BROKEN_BUILDS=${GITLAB_NOTIFY_ON_BROKEN_BUILDS:-true}
-      - GITLAB_NOTIFY_PUSHER=${GITLAB_NOTIFY_PUSHER:-false}
+      - GITLAB_NOTIFY_ON_BROKEN_BUILDS=${GIT_NOTIFY_BROKEN_BUILDS:-true}
+      - GITLAB_NOTIFY_PUSHER=${GIT_NOTIFY_PUSHER:-false}
 
-      - GITLAB_EMAIL=${GITLAB_EMAIL:-notifications@example.com}
-      - GITLAB_EMAIL_REPLY_TO=${GITLAB_EMAIL_REPLY_TO:-noreply@example.com}
-      - GITLAB_INCOMING_EMAIL_ADDRESS=${GITLAB_INCOMING_EMAIL_ADDRESS:-reply@example.com}
+      - GITLAB_EMAIL=${GIT_EMAIL:-notifications@example.com}
+      - GITLAB_EMAIL_REPLY_TO=${GIT_EMAIL_REPLY:-noreply@example.com}
+      - GITLAB_INCOMING_EMAIL_ADDRESS=${GIT_INCOMING_EMAIL:-reply@example.com}
 
-      - GITLAB_BACKUP_SCHEDULE=${GITLAB_BACKUP_SCHEDULE:-daily}
-      - GITLAB_BACKUP_TIME=${GITLAB_BACKUP_TIME:-01:00}
+      - GITLAB_BACKUP_SCHEDULE=${GIT_BACKUP_SCHEDULE:-daily}
+      - GITLAB_BACKUP_TIME=${GIT_BACKUP_TIME:-01:00}
 
-      - SMTP_ENABLED=${GITLAB_SMTP_ENABLED:-false}
-      - SMTP_DOMAIN=${GITLAB_SMTP_DOMAIN:-www.example.com}
-      - SMTP_HOST=${GITLAB_SMTP_HOST:-smtp.gmail.com}
-      - SMTP_PORT=${GITLAB_SMTP_PORT:-587}
-      - SMTP_USER=${GITLAB_SMTP_USER:-mailer@example.com}
-      - SMTP_PASS=${GITLAB_SMTP_PASS:-password}
-      - SMTP_STARTTLS=${GITLAB_SMTP_STARTTLS:-true}
-      - SMTP_AUTHENTICATION=${GITLAB_SMTP_AUTHENTICATION:-login}
+      - SMTP_ENABLED=${GIT_SMTP_ENABLED:-false}
+      - SMTP_DOMAIN=${GIT_SMTP_DOMAIN:-www.example.com}
+      - SMTP_HOST=${GIT_SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${GIT_SMTP_PORT:-587}
+      - SMTP_USER=${GIT_SMTP_USER:-mailer@example.com}
+      - SMTP_PASS=${GIT_SMTP_PASS:-password}
+      - SMTP_STARTTLS=${GIT_SMTP_STARTTLS:-true}
+      - SMTP_AUTHENTICATION=${GIT_SMTP_AUTH:-login}
 
-      - IMAP_ENABLED=${GITLAB_IMAP_ENABLED:-false}
-      - IMAP_HOST=${GITLAB_IMAP_HOST:-imap.gmail.com}
-      - IMAP_PORT=${GITLAB_IMAP_PORT:-993}
-      - IMAP_USER=${GITLAB_IMAP_USER:-mailer@example.com}
-      - IMAP_PASS=${GITLAB_IMAP_PASS:-password}
-      - IMAP_SSL=${GITLAB_IMAP_SSL:-true}
-      - IMAP_STARTTLS=${GITLAB_IMAP_STARTTLS:-false}
+      - IMAP_ENABLED=${GIT_IMAP_ENABLED:-false}
+      - IMAP_HOST=${GIT_IMAP_HOST:-imap.gmail.com}
+      - IMAP_PORT=${GIT_IMAP_PORT:-993}
+      - IMAP_USER=${GIT_IMAP_USER:-mailer@example.com}
+      - IMAP_PASS=${GIT_IMAP_PASS:-password}
+      - IMAP_SSL=${GIT_IMAP_SSL:-true}
+      - IMAP_STARTTLS=${GIT_IMAP_STARTTLS:-false}
 
-      - OAUTH_ENABLED=${GITLAB_OAUTH_ENABLED:-false}
-      - OAUTH_AUTO_SIGN_IN_WITH_PROVIDER=${GITLAB_OAUTH_AUTO_SIGN_IN_WITH_PROVIDER}
-      - OAUTH_ALLOW_SSO=${GITLAB_OAUTH_ALLOW_SSO}
-      - OAUTH_BLOCK_AUTO_CREATED_USERS=${GITLAB_OAUTH_BLOCK_AUTO_CREATED_USERS:-true}
-      - OAUTH_AUTO_LINK_LDAP_USER=${GITLAB_OAUTH_AUTO_LINK_LDAP_USER:-false}
-      - OAUTH_AUTO_LINK_SAML_USER=${GITLAB_OAUTH_AUTO_LINK_SAML_USER:-false}
-      - OAUTH_EXTERNAL_PROVIDERS=${GITLAB_OAUTH_EXTERNAL_PROVIDERS}
+      - OAUTH_ENABLED=${GIT_OAUTH_ENABLED:-false}
+      - OAUTH_AUTO_SIGN_IN_WITH_PROVIDER=${GIT_OAUTH_SSO_PROVIDER}
+      - OAUTH_ALLOW_SSO=${GIT_OAUTH_ALLOW_SSO}
+      - OAUTH_BLOCK_AUTO_CREATED_USERS=${GIT_OAUTH_BLOCK_AUTO_USERS:-true}
+      - OAUTH_AUTO_LINK_LDAP_USER=${GIT_OAUTH_LINK_LDAP:-false}
+      - OAUTH_AUTO_LINK_SAML_USER=${GIT_OAUTH_LINK_SAML:-false}
+      - OAUTH_EXTERNAL_PROVIDERS=${GIT_OAUTH_EXTERNAL_PROVIDERS}
 
-      - OAUTH_CAS3_LABEL=${GITLAB_OAUTH_CAS3_LABEL:-cas3}
-      - OAUTH_CAS3_SERVER=${GITLAB_OAUTH_CAS3_SERVER}
-      - OAUTH_CAS3_DISABLE_SSL_VERIFICATION=${GITLAB_OAUTH_CAS3_DISABLE_SSL_VERIFICATION:-false}
-      - OAUTH_CAS3_LOGIN_URL=${GITLAB_OAUTH_CAS3_LOGIN_URL:-/cas/login}
-      - OAUTH_CAS3_VALIDATE_URL=${GITLAB_OAUTH_CAS3_VALIDATE_URL:-/cas/p3/serviceValidate}
-      - OAUTH_CAS3_LOGOUT_URL=${GITLAB_OAUTH_CAS3_LOGOUT_URL:-/cas/logout}
+      - OAUTH_CAS3_LABEL=${GIT_OAUTH_CAS3_LABEL:-cas3}
+      - OAUTH_CAS3_SERVER=${GIT_OAUTH_CAS3_SERVER}
+      - OAUTH_CAS3_DISABLE_SSL_VERIFICATION=${GIT_OAUTH_CAS3_DISABLE_SSL:-false}
+      - OAUTH_CAS3_LOGIN_URL=${GIT_OAUTH_CAS3_LOGIN_URL:-/cas/login}
+      - OAUTH_CAS3_VALIDATE_URL=${GIT_OAUTH_CAS3_VALIDATE_URL:-/cas/p3/serviceValidate}
+      - OAUTH_CAS3_LOGOUT_URL=${GIT_OAUTH_CAS3_LOGOUT_URL:-/cas/logout}
 
-      - OAUTH_GOOGLE_API_KEY=${GITLAB_OAUTH_GOOGLE_API_KEY}
-      - OAUTH_GOOGLE_APP_SECRET=${GITLAB_OAUTH_GOOGLE_APP_SECRET}
-      - OAUTH_GOOGLE_RESTRICT_DOMAIN=${GITLAB_OAUTH_GOOGLE_RESTRICT_DOMAIN}
+      - OAUTH_GOOGLE_API_KEY=${GIT_OAUTH_GOOGLE_API_KEY}
+      - OAUTH_GOOGLE_APP_SECRET=${GIT_OAUTH_GOOGLE_APP_SECRET}
+      - OAUTH_GOOGLE_RESTRICT_DOMAIN=${GIT_OAUTH_GOOGLE_RESTRICT_DOMAIN}
 
       - OAUTH_FACEBOOK_API_KEY=${GITLAB_OAUTH_FACEBOOK_API_KEY}
       - OAUTH_FACEBOOK_APP_SECRET=${GITLAB_OAUTH_FACEBOOK_APP_SECRET}
 
-      - OAUTH_TWITTER_API_KEY=${GITLAB_OAUTH_TWITTER_API_KEY}
-      - OAUTH_TWITTER_APP_SECRET=${GITLAB_OAUTH_TWITTER_APP_SECRET}
+      - OAUTH_TWITTER_API_KEY=${GIT_OAUTH_FB_API_KEY}
+      - OAUTH_TWITTER_APP_SECRET=${GIT_OAUTH_FB_APP_SECRET}
 
-      - OAUTH_GITHUB_API_KEY=${GITLAB_OAUTH_GITHUB_API_KEY}
-      - OAUTH_GITHUB_APP_SECRET=${GITLAB_OAUTH_GITHUB_APP_SECRET}
-      - OAUTH_GITHUB_URL=${GITLAB_OAUTH_GITHUB_URL}
-      - OAUTH_GITHUB_VERIFY_SSL=${GITLAB_OAUTH_GITHUB_VERIFY_SSL}
+      - OAUTH_GITHUB_API_KEY=${GIT_OAUTH_GH_API_KEY}
+      - OAUTH_GITHUB_APP_SECRET=${GIT_OAUTH_GH_APP_SECRET}
+      - OAUTH_GITHUB_URL=${GIT_OAUTH_GH_URL}
+      - OAUTH_GITHUB_VERIFY_SSL=${GIT_OAUTH_GH_VERIFY_SSL}
 
-      - OAUTH_GITLAB_API_KEY=${GITLAB_OAUTH_GITLAB_API_KEY}
-      - OAUTH_GITLAB_APP_SECRET=${GITLAB_OAUTH_GITLAB_APP_SECRET}
+      - OAUTH_GITLAB_API_KEY=${GIT_OAUTH_GITLAB_API_KEY}
+      - OAUTH_GITLAB_APP_SECRET=${GIT_OAUTH_GITLAB_APP_SECRET}
 
-      - OAUTH_BITBUCKET_API_KEY=${GITLAB_OAUTH_BITBUCKET_API_KEY}
-      - OAUTH_BITBUCKET_APP_SECRET=${GITLAB_OAUTH_BITBUCKET_APP_SECRET}
-      - OAUTH_BITBUCKET_URL=${GITLAB_OAUTH_BITBUCKET_URL}
+      - OAUTH_BITBUCKET_API_KEY=${GIT_OAUTH_BITBUCKET_API_KEY}
+      - OAUTH_BITBUCKET_APP_SECRET=${GIT_OAUTH_BITBUCKET_APP_SECRET}
+      - OAUTH_BITBUCKET_URL=${GIT_OAUTH_BITBUCKET_URL}
 
-      - OAUTH_SAML_ASSERTION_CONSUMER_SERVICE_URL=${GITLAB_OAUTH_SAML_ASSERTION_CONSUMER_SERVICE_URL}
-      - OAUTH_SAML_IDP_CERT_FINGERPRINT=${GITLAB_OAUTH_SAML_IDP_CERT_FINGERPRINT}
-      - OAUTH_SAML_IDP_SSO_TARGET_URL=${GITLAB_OAUTH_SAML_IDP_SSO_TARGET_URL}
-      - OAUTH_SAML_ISSUER=${GITLAB_OAUTH_SAML_ISSUER}
-      - OAUTH_SAML_LABEL=${GITLAB_OAUTH_SAML_LABEL:-"Our SAML Provider"}
-      - OAUTH_SAML_NAME_IDENTIFIER_FORMAT=${GITLAB_OAUTH_SAML_NAME_IDENTIFIER_FORMAT:-urn:oasis:names:tc:SAML:2.0:nameid-format:transient}
-      - OAUTH_SAML_GROUPS_ATTRIBUTE=${GITLAB_OAUTH_SAML_GROUPS_ATTRIBUTE}
-      - OAUTH_SAML_EXTERNAL_GROUPS=${GITLAB_OAUTH_SAML_EXTERNAL_GROUPS}
-      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL=${GITLAB_OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL}
-      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_NAME=${GITLAB_OAUTH_SAML_ATTRIBUTE_STATEMENTS_NAME}
-      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_USERNAME=${GITLAB_OAUTH_SAML_ATTRIBUTE_STATEMENTS_USERNAME}
-      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_FIRST_NAME=${GITLAB_OAUTH_SAML_ATTRIBUTE_STATEMENTS_FIRST_NAME}
-      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_LAST_NAME=${GITLAB_OAUTH_SAML_ATTRIBUTE_STATEMENTS_LAST_NAME}
+      - OAUTH_SAML_ASSERTION_CONSUMER_SERVICE_URL=${GIT_OAUTH_SAML_ACS_URL}
+      - OAUTH_SAML_IDP_CERT_FINGERPRINT=${GIT_OAUTH_SAML_IDP_CERT}
+      - OAUTH_SAML_IDP_SSO_TARGET_URL=${GIT_OAUTH_SAML_SSO_URL}
+      - OAUTH_SAML_ISSUER=${GIT_OAUTH_SAML_ISSUER}
+      - OAUTH_SAML_LABEL=${GIT_OAUTH_SAML_LABEL:-"Our SAML Provider"}
+      - OAUTH_SAML_NAME_IDENTIFIER_FORMAT=${GIT_OAUTH_SAML_NAME_ID_FORMAT:-urn:oasis:names:tc:SAML:2.0:nameid-format:transient}
+      - OAUTH_SAML_GROUPS_ATTRIBUTE=${GIT_OAUTH_SAML_GROUPS_ATTR}
+      - OAUTH_SAML_EXTERNAL_GROUPS=${GIT_OAUTH_SAML_EXT_GROUPS}
+      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_EMAIL=${GIT_OAUTH_SAML_ATTR_EMAIL}
+      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_NAME=${GIT_OAUTH_SAML_ATTR_NAME}
+      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_USERNAME=${GIT_OAUTH_SAML_ATTR_USERNAME}
+      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_FIRST_NAME=${GIT_OAUTH_SAML_ATTR_FIRST_NAME}
+      - OAUTH_SAML_ATTRIBUTE_STATEMENTS_LAST_NAME=${GIT_OAUTH_SAML_ATTR_LAST_NAME}
 
-      - OAUTH_CROWD_SERVER_URL=${GITLAB_OAUTH_CROWD_SERVER_URL}
-      - OAUTH_CROWD_APP_NAME=${GITLAB_OAUTH_CROWD_APP_NAME}
-      - OAUTH_CROWD_APP_PASSWORD=${GITLAB_OAUTH_CROWD_APP_PASSWORD}
+      - OAUTH_CROWD_SERVER_URL=${GIT_OAUTH_CROWD_SERVER}
+      - OAUTH_CROWD_APP_NAME=${GIT_OAUTH_CROWD_APP_NAME}
+      - OAUTH_CROWD_APP_PASSWORD=${GIT_OAUTH_CROWD_APP_PASS}
 
-      - OAUTH_AUTH0_CLIENT_ID=${GITLAB_OAUTH_AUTH0_CLIENT_ID}
-      - OAUTH_AUTH0_CLIENT_SECRET=${GITLAB_OAUTH_AUTH0_CLIENT_SECRET}
-      - OAUTH_AUTH0_DOMAIN=${GITLAB_OAUTH_AUTH0_DOMAIN}
-      - OAUTH_AUTH0_SCOPE=${GITLAB_OAUTH_AUTH0_SCOPE}
+      - OAUTH_AUTH0_CLIENT_ID=${GIT_OAUTH_AUTH0_ID}
+      - OAUTH_AUTH0_CLIENT_SECRET=${GIT_OAUTH_AUTH0_SECRET}
+      - OAUTH_AUTH0_DOMAIN=${GIT_OAUTH_AUTH0_DOMAIN}
+      - OAUTH_AUTH0_SCOPE=${GIT_OAUTH_AUTH0_SCOPE}
 
-      - OAUTH_AZURE_API_KEY=${GITLAB_OAUTH_AZURE_API_KEY}
-      - OAUTH_AZURE_API_SECRET=${GITLAB_OAUTH_AZURE_API_SECRET}
-      - OAUTH_AZURE_TENANT_ID=${GITLAB_OAUTH_AZURE_TENANT_ID}
+      - OAUTH_AZURE_API_KEY=${GIT_OAUTH_AZURE_KEY}
+      - OAUTH_AZURE_API_SECRET=${GIT_OAUTH_AZURE_SECRET}
+      - OAUTH_AZURE_TENANT_ID=${GIT_OAUTH_AZURE_TENANT}
+    depends_on:
+      gitlab_db:
+        condition: service_healthy
+      gitlab_redis:
+        condition: service_healthy
     volumes:
       - /data/logs/gitlab:/var/log/gitlab
       - /data/apps/gitlab:/home/git/data:Z
-    depends_on:
-      - gitlab_db
-      - gitlab_redis
     networks:
       - focela_network
     healthcheck:
@@ -281,6 +306,36 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5m
+
+  proxy:
+    <<: *common-config
+    container_name: proxy
+    restart: always
+    image: jc21/nginx-proxy-manager:${PROXY_VER:-2.12.1}
+    ports:
+      - ${PROXY_HTTP_PORT_BIND:-80}:80
+      - ${PROXY_HTTPS_PORT_BIND:-443}:443
+      - ${PROXY_ADMIN_PORT_BIND:-81}:81
+    environment:
+      - DB_MYSQL_HOST=${PROXY_DB_HOST:-proxy_db}
+      - DB_MYSQL_PORT=${PROXY_DB_PORT:-3306}
+      - DB_MYSQL_USER=${PROXY_DB_USER:-proxy_user}
+      - DB_MYSQL_PASSWORD=${PROXY_DB_PASS:-secure_password}
+      - DB_MYSQL_NAME=${PROXY_DB_NAME:-proxy_production}
+    depends_on:
+      proxy_db:
+        condition: service_healthy
+    volumes:
+      - /data/apps/proxy:/data
+      - /data/ssl:/etc/letsencrypt
+    networks:
+      - focela_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:81"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
   focela_network:
