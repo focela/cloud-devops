@@ -14,7 +14,7 @@ services:
       - POSTGRES_MULTIPLE_DATABASES=${ATL_DB_NAMES:-db1,db2,db3}
     volumes:
       - /data/apps/atlassian_db:/var/lib/postgresql/data
-      - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+      - ./init/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
     networks:
       - focela_network
     healthcheck:
